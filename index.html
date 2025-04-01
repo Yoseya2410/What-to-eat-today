@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>今天吃什么？</title>
+    <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+    <!-- 顶栏 -->
+    <div class="top-bar">
+        <div class="topBarMenuButton" onclick="openFilterModal()">
+            <img src="./img/filter.svg" alt="筛选">
+        </div>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="搜索菜品">
+        </div>
+        <div class="dropbtn dropdown topBarMenuButton" onclick="openDropdownModal()">
+            <img src="./img/menu.svg" alt="选项">
+        </div>
+    </div>
+
+    <div id="menu">
+        <h1 id="dishName">今天吃什么？</h1>
+        <h2 id="price"></h2>
+        <p id="location"></p>
+    </div>
+    <button class="random" onclick="chooseDish()">随机选菜</button>
+
+    <!-- 搜索结果 -->
+    <div id="searchResults"></div>
+
+    <!-- 筛选弹窗 -->
+    <div class="modal-overlay" id="filterOverlay"></div>
+    <div class="modal" id="filterModal">
+        <div class="modal-content">
+            <h2>筛选</h2>
+            <label for="modalMaxPrice">最高价格：</label>
+            <input type="number" id="modalMaxPrice" placeholder="输入最高价格">
+            <label for="modalCanteen">食堂：</label>
+            <select id="modalCanteen">
+                <option value="">全部食堂</option>
+                <option value="第一食堂">第一食堂</option>
+                <option value="第二食堂">第二食堂</option>
+                <option value="第三食堂">第三食堂</option>
+                <option value="贝壳食堂">贝壳食堂</option>
+                <option value="小南门">小南门</option>
+            </select>
+            <label for="modalTime">时间段：</label>
+            <select id="modalTime">
+                <option value="">全部</option>
+                <option value="a">早饭</option>
+                <option value="b">午饭</option>
+                <option value="c">晚饭</option>
+            </select>
+            <button onclick="applyFilterFromModal()">确定</button>
+        </div>
+    </div>
+
+    <!-- 下拉菜单弹窗 -->
+    <div class="modal-overlay" id="dropdownOverlay"></div>
+    <div class="modal" id="dropdownModal">
+        <div class="modal-content">
+            <h2>设置</h2>
+
+            <div class="dropdown-list">
+                <a href="#" class="dropdown-item" onclick="document.getElementById('csvInput').click()">导入数据</a>
+                <input type="file" id="csvInput" accept=".csv" hidden>
+                <a href="#" class="dropdown-item" onclick="resetToDefaultData()">恢复默认数据</a>
+                <a href="#" class="dropdown-item">加入我们（筹备中）</a>
+                <a href="https://gitee.com/yoseya2410/what-to-eat-today" class="dropdown-item">源代码</a>
+                <button class="close-btn" onclick="closeDropdownModal()">关闭</button>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="./script.js"></script>
+</body>
+
+</html>
