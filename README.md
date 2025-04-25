@@ -1,2 +1,3 @@
 # What to eat today?
 
+I wrote a random food selection mini program in college, inspired by the bus I took back home during the winter vacation in my freshman year ...
