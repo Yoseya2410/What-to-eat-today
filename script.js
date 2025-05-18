@@ -2,21 +2,37 @@ const STORAGE_VERSION = '1.0';
 let menu = [];
 let filteredMenu = [];
 
+// 时间判断函数
+function getCurrentTimePeriod() {
+    const hours = new Date().getHours();
+    if (hours >= 5 && hours < 9) return 'a';
+    if (hours >= 9 && hours < 17) return 'b';
+    if (hours >= 17 && hours < 24) return 'c';
+    return '';
+}
+
 // 价格格式化
 function formatPrice(price) {
-    return price % 1 === 0 ? price.toFixed(0) : price.toFixed(1);
+    return price % 1 === 0
+        ? price.toFixed(0)
+        : price.toFixed(1);
+}
+function formatPrice(price) {
+    return price % 1 === 0
+        ? price.toFixed(0)
+        : price.toFixed(1);
 }
 
 // 文件处理功能
 function handleCSVUpload(event) {
     const file = event.target.files[0];
-    if (!file) return;
-
     const reader = new FileReader();
-    reader.onload = function(e) {
+
+    reader.onload = function (e) {
         parseCSVData(e.target.result);
         showUploadSuccess();
     };
+
     reader.readAsText(file);
 }
 
@@ -34,13 +50,12 @@ function parseCSVData(csvText) {
             time: time?.trim() || 'bc'
         };
     });
-    
-    // 保存到本地存储
+
     localStorage.setItem('menuData', JSON.stringify({
         version: STORAGE_VERSION,
         data: newMenu
     }));
-    
+
     menu = newMenu;
     filteredMenu = [...newMenu];
     applyFilter();
@@ -50,24 +65,38 @@ function parseCSVData(csvText) {
 // 初始化加载菜单
 async function loadMenu() {
     try {
-        // 优先读取本地存储
         const savedData = localStorage.getItem('menuData');
         if (savedData) {
             const { version, data } = JSON.parse(savedData);
             if (version === STORAGE_VERSION) {
                 menu = data;
                 filteredMenu = [...data];
-                return;
+                return true;
             }
         }
 
-        // 没有本地数据时加载默认CSV
         const response = await fetch('menu.csv');
         const data = await response.text();
         parseCSVData(data);
+        return true;
     } catch (error) {
         console.error('菜单加载失败:', error);
         document.getElementById("dishName").textContent = "菜单加载失败";
+        return false;
+    }
+}
+
+// 主初始化函数
+async function initializeApp() {
+    // 设置初始时间段
+    document.getElementById("modalTime").value = getCurrentTimePeriod();
+
+    // 加载菜单数据
+    const loadSuccess = await loadMenu();
+
+    // 数据加载成功后应用筛选
+    if (loadSuccess) {
+        applyFilter();
     }
 }
 
@@ -100,8 +129,8 @@ function applyFilter() {
         return priceCondition && canteenCondition && timeCondition;
     });
 
-    document.getElementById("dishName").textContent = filteredMenu.length 
-        ? "今天吃什么？" 
+    document.getElementById("dishName").textContent = filteredMenu.length
+        ? "今天吃什么？"
         : "没有符合的菜品";
     document.getElementById("price").textContent = "";
     document.getElementById("location").textContent = "";
@@ -141,11 +170,11 @@ function applyFilterFromModal() {
 function searchDishes() {
     const searchTerm = document.getElementById("searchInput").value.toLowerCase().trim();
     const searchResults = document.getElementById("searchResults");
-    
+
     searchResults.innerHTML = "";
     if (!searchTerm) return;
 
-    const results = filteredMenu.filter(dish => 
+    const results = filteredMenu.filter(dish =>
         dish.name.toLowerCase().includes(searchTerm)
     );
 
@@ -177,5 +206,60 @@ function closeDropdownModal() {
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById("searchInput").addEventListener("input", searchDishes);
     document.getElementById('csvInput').addEventListener("change", handleCSVUpload);
-    loadMenu();
+    initializeApp();
 });
+
+function openDobao() {
+    window.open("https://doubao.com/bot/egx8QZwB");
+}
+
+/*pwa*/
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+            .then(registration => {
+                console.log('Service Worker 注册成功:', registration.scope);
+
+                // 监听 updatefound 事件
+                registration.onupdatefound = () => {
+                    const installingWorker = registration.installing;
+                    installingWorker.onstatechange = () => {
+                        if (installingWorker.state === 'installed') {
+                            if (navigator.serviceWorker.controller) {
+
+                                if (registration.waiting) {
+                                    registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+
+                                    // 监听 controllerchange 事件
+                                    navigator.serviceWorker.addEventListener('controllerchange', () => {
+                                        window.location.reload();
+                                    });
+                                }
+
+                            } else {
+                                // 第一次安装
+                            }
+                        }
+                    };
+                };
+
+                // 接收来自Service Worker的消息
+                navigator.serviceWorker.addEventListener('message', event => {
+                    if (event.data.type === 'UPDATE_AVAILABLE') {
+
+                        if (registration.waiting) {
+                            registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+
+                            // 监听 controllerchange 事件
+                            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                                window.location.reload();
+                            });
+                        }
+                    }
+                });
+            })
+            .catch(error => {
+                console.error('Service Worker 注册失败:', error);
+            });
+    });
+}
